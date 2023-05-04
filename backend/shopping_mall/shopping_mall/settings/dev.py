@@ -10,11 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
+# print(os.path.join(os.path.dirname(BASE_DIR), "logs\\main.log"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -30,6 +31,9 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+import sys
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+# print(sys.path)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -38,11 +42,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # 注册应用
+    'corsheaders', # django解决跨域
 
-    "rest_framework"
+    "rest_framework",
+    "users.apps.UsersConfig" # 用户模块
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -137,7 +145,14 @@ CACHES = {
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             }
+        },
+    "verify_codes": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
+    },
 }
 
 # django的session默认存在sqlite里
@@ -169,14 +184,14 @@ LOGGING = {
     'handlers': {
         'console': {   # 终端
             'level': 'INFO',
-            'filters': ['require_debug_ture'],
-            'class': 'logging,StreamHandler',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
         'file': {  # 文件
             'level': 'INFO',
-            'class': 'logging,StreamHandler',
-            'filename': os.path.join(os.path.dirname(BASE_DIR), "logs/main.log"),
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(os.path.dirname(BASE_DIR), "logs\\main.log"),
             'maxBytes': 300 * 1024 * 1024,
             'backupCount': 10,
             'formatter': 'verbose'
@@ -192,4 +207,20 @@ LOGGING = {
     }
 }
 
+# import sys
+# print(sys.path)
+# DRF 加载exception配置项
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'backend.shopping_mall.shopping_mall.utils.exceptions.exception_handler'
+}
 
+AUTH_USER_MODEL = 'users.User'
+
+# CORS 加白名单
+# CORS_ORIGIN_WHITELIST = {
+#     'http://127.0.0.1:8008'
+#     'http://127.0.0.1:8001'
+# }
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_CREDENTIALS = True # 允许携带cookie

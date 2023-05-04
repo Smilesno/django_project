@@ -1,4 +1,2 @@
-.backend/idea/
-.vscode
-.backend/shopping_mall/logs/*.log
-.idea/
+idea
+backend/shopping_mall/logs/*.log
